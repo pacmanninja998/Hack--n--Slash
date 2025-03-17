@@ -1,7 +1,5 @@
-# Hack 'n' Slash
- my documentation of modifications to the game that i have found to bennefit
-# Tunic Game Mods
-
+# Hack 'n' Slash Game Mods
+ My documentation of modifications to the game that I have found to bennefit
 | Mod | Location | Class | Description | Modification |
 |-----|----------|--------|-------------|--------------|
 | Walk on Air and Water | Data/Content/Game/Global/Entities/Alice.lua | onEnterWater | Allows walking on water | Line 5: Change `if not collidingWater, go to 63` to `if collidingWater, go to 63` |
