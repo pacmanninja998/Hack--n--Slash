@@ -1,0 +1,170 @@
+-- Decompiled using luadec 2.0.2 by sztupy (http://winmo.sztupy.hu)
+-- Command line was: C:\Users\pacmanninja998\Downloads\luadec51_2.0.2_win32\decode\Content\Game\DourTower\Rooms\Staircase4.lua 
+
+local Class = require("Class")
+local Room = require("Room")
+local Staircase4 = Room.classFromLayout("Content/Game/DourTower/Layouts/Staircase", "Staircase4", "Content/Game/DourTower/Rooms/Staircase")
+local Entity = require("Entity")
+local Math = require("DFCommon.Math")
+local Music = require("Music")
+local Shader = require("Shader")
+local SceneComponent = require("Components.SceneComponent")
+local SoundComponent = require("Components.SoundComponent")
+Staircase4.onInit = function(l_1_0)
+  Class.super(Staircase4).onInit(l_1_0)
+  l_1_0:defineCollisionExit("Exit_Lft", "Content/Game/DourTower/Rooms/TowerLevel4", "Staircase4 exit")
+  l_1_0:defineCollisionExit("Exit_Rt", "Content/Game/DourTower/Rooms/TowerLevel5", "Staircase4 exit")
+end
+
+Staircase4.onAliceCreated = function(l_2_0, l_2_1)
+  Class.super(Staircase4).onAliceCreated(l_2_0, l_2_1)
+  if not l_2_0:getState().sawMonologue and not l_2_1.state.escapedRoof then
+    l_2_0:defineLogicTrigger("Eve trigger", l_2_0.onEveTrigger, l_2_0)
+    l_2_0:defineLogicTrigger("Exit trigger", l_2_0.onExitTrigger, l_2_0)
+    l_2_0:getCollisionArea("Eve trigger"):setActive(true)
+    l_2_0:getCollisionArea("Exit trigger"):setActive(true)
+  else
+    l_2_0:getCollisionArea("Eve trigger"):setActive(false)
+    l_2_0:getCollisionArea("Exit trigger"):setActive(false)
+  end
+end
+
+Staircase4.onEntranceTrigger = function(l_3_0)
+  local alice = l_3_0:getAlice()
+  if not alice.state.escapedRoof then
+    l_3_0:playWizardScene()
+  else
+    l_3_0:playAscent()
+  end
+end
+
+Staircase4.playAscent = function(l_4_0)
+  if l_4_0:getState().sawAscent then
+    return 
+  end
+  l_4_0:getState().sawAscent = true
+  local alice = l_4_0:getAlice()
+  local bob = l_4_0:getBob()
+  alice:get(SceneComponent):play(function(l_1_0)
+    l_1_0:sleep(2)
+    l_1_0:floatText(bob, "Here we go. Are you scared?", nil, {floatAbove = false})
+    l_1_0:sleep(0.5)
+    l_1_0:floatText(alice, "We can handle this.", nil, {floatAbove = false})
+    l_1_0:sleep(3)
+    l_1_0:floatText(bob, "$ALICE, you're pretty great.", nil, {floatAbove = false})
+    l_1_0:sleep(1)
+    l_1_0:floatText(alice, "Don't get senitmental on me right now, $BOB.", nil, {floatAbove = false})
+    l_1_0:sleep(2)
+    l_1_0:floatText(alice, "But you're great too.", nil, {floatAbove = false})
+   end)
+end
+
+Staircase4.playWizardScene = function(l_5_0)
+  if l_5_0:getState().sawMonologue then
+    return 
+  end
+  l_5_0:getState().sawMonologue = true
+  local alice = l_5_0:getAlice()
+  local bob = l_5_0:getBob()
+  alice:get(SceneComponent):play(function(l_1_0)
+    local alicePortrait = l_1_0:addAlicePortrait()
+    local bobPortrait = l_1_0:addCharacter("Portraits/Bob/Bob")
+    local head = Entity.create("Content/Game/DourTower/Entities/WizardHead", self:getLayerByOrder(0), alice:getPosition())
+    head.prop:setScl(0.5)
+    head:trackEntity(alice)
+    head.idle = "StaircaseScene"
+    l_1_0:sleep(0.1)
+    l_1_0:floatText(head, "...just go.  I need you to buy me some time.", 2, {floatAbove = false, color = {0.75, 0.75, 0.75}})
+    l_1_0:sleep(0.5)
+    l_1_0:floatText(head, "But how am I supposed to--", nil, {floatAbove = false})
+    l_1_0:sleep(0.25)
+    l_1_0:floatText(head, "I don't have time to argue. Hold them as long as you can.", 2, {floatAbove = true, color = {0.75, 0.75, 0.75}})
+    l_1_0:sleep(0.25)
+    l_1_0:floatText(head, "...okay, Christo", 1.5, nil, {floatAbove = false})
+    l_1_0:floatText(head, "Just. Go.", 1, nil, {floatAbove = false})
+    head:setFace()
+    l_1_0:playAnimation(head, "StaircaseScene_End", 0.25)
+    l_1_0:floatText(head, "Alright, time for a good taunt--", nil, {floatAbove = false})
+    Music:playMusic("Music/Music/WizardTower_Level5_Layer4")
+    l_1_0:sleep(0.25)
+    l_1_0:floatText(head, "Is this thing already on?", nil, {floatAbove = false})
+    l_1_0:sleep(0.25)
+    alice:halt(true)
+    l_1_0:floatText(head, "Were you two listening in?", nil, {floatAbove = false})
+    local cameraShake = Shader.load("Content/Game/Global/Shaders/CameraShake")
+    self:insertPostEffect(cameraShake)
+    local cue = alice:get(SoundComponent):playCue("SFX/Cutscenes/WizardTower_Earthquake", nil, 1.5)
+    l_1_0:animate(0.2, function(l_1_0)
+      head.prop:setScl(Math.lerp(0.5, 2.5, l_1_0))
+      cameraShake:setFragmentUniformFloat("shaderDuration", Math.lerp(0, 2, l_1_0))
+      end)
+    l_1_0:floatText(head, "AAAAAAAAAAAARRGH--", 1, {floatAbove = false})
+    alice:get(SoundComponent):stopCue(cue)
+    head:disappear()
+    l_1_0:animate(1, function(l_2_0)
+      cameraShake:setFragmentUniformFloat("shaderDuration", Math.lerp(2, 0, l_2_0))
+      head.prop:setScl(Math.lerp(2.5, 1, l_2_0))
+      end)
+    self:removePostEffect()
+    alice:halt(false)
+    l_1_0:sleep(0.5)
+    l_1_0:floatText(bob, "It's nice to be acknowledged.", nil, {floatAbove = false})
+   end)
+end
+
+Staircase4.onEveTrigger = function(l_6_0)
+  local alice = l_6_0:getAlice()
+  local bob = l_6_0:getBob()
+  alice:get(SceneComponent):play(function(l_1_0)
+    alice:halt(true)
+    local alicePortrait = l_1_0:addAlicePortrait()
+    local bobPortrait = l_1_0:addCharacter("Portraits/Bob/Bob")
+    local evePortrait = l_1_0:addCharacter("Portraits/Eve/Eve")
+    local eveX, eveY = self:getEntity("Eve spawn locator"):getPosition()
+    local eve = Entity.create("Content/Game/Global/Entities/RedSprite", self:getLayerByOrder(0), eveX, eveY, "Eve")
+    eve:beExcited(self:getEntity("Eve navigation target"))
+    l_1_0:sleep(0.5)
+    l_1_0:speakLineRight(evePortrait, "Come no further!", "EvilGrin")
+    l_1_0:speakLineLeft(bobPortrait, "$ALICE, do we have to fight a sprite?", "Sad")
+    l_1_0:speakLineLeft(alicePortrait, "Who are you?", "StinkEye")
+    eve:ponder(false)
+    l_1_0:speakLineRight(evePortrait, "I'm the wizard's friend.  I'm here to stop you.", "Default")
+    l_1_0:speakLineLeft(alicePortrait, "How are you going to do that?", "StinkEye")
+    l_1_0:speakLineRight(evePortrait, "I'm going to ask you politely.", "Default")
+    l_1_0:speakLineLeft(bobPortrait, "Why isn't the wizard here?", "Talk3")
+    l_1_0:speakLineRight(evePortrait, "He has more important things to do than playing games with you.", "Bored")
+    l_1_0:speakLineLeft(alicePortrait, "Doesn't sound like him.", "Suspicious")
+    alice:halt(false)
+   end)
+end
+
+Staircase4.onExitTrigger = function(l_7_0)
+  local alice = l_7_0:getAlice()
+  local bob = l_7_0:getBob()
+  alice:get(SceneComponent):play(function(l_1_0)
+    alice:halt(true)
+    local alicePortrait = l_1_0:addAlicePortrait()
+    local bobPortrait = l_1_0:addCharacter("Portraits/Bob/Bob")
+    local evePortrait = l_1_0:addCharacter("Portraits/Eve/Eve")
+    l_1_0:speakLineLeft(bobPortrait, "Look, we don't want to fight...", "Judgemental")
+    l_1_0:speakLineLeft(alicePortrait, "...but we're going up there to stop him.", "Talk2")
+    l_1_0:speakLineRight(evePortrait, "You must stop.  He's just keeping the kingdom safe.", "Default")
+    l_1_0:speakLineLeft(alicePortrait, "Pssh.  He's only thinking of himself.", "Angry")
+    l_1_0:speakLineLeft(bobPortrait, "Hasn't he kidnapped a princess or something?", "StinkEye")
+    l_1_0:speakLineRight(evePortrait, "That...made sense at the time.  She had the power over the rooms...much as you obviously do.", "Bored")
+    l_1_0:speakLineLeft(alicePortrait, "...and?", "Talk2")
+    l_1_0:speakLineRight(evePortrait, "It was obvious that only Christo could be trusted with such power.", "Default")
+    l_1_0:speakLineLeft(alicePortrait, "What kind of--", "Suspicious")
+    l_1_0:speakLineRight(evePortrait, "Christo is my friend.  I have known him my entire life.", "Default")
+    l_1_0:speakLineRight(evePortrait, "He made me.  He made all the red sprites, $BOB.", "Bored")
+    l_1_0:speakLineLeft(bobPortrait, "Really?  Huh.", "Hrmm")
+    l_1_0:speakLineRight(evePortrait, "He is a good man.  I will never stop believing that.", "Default")
+    l_1_0:speakLineRight(evePortrait, "$BOB, you must understand.", "Default")
+    l_1_0:speakLineLeft(alicePortrait, "...", "MildlyConcerned")
+    l_1_0:speakLineLeft(bobPortrait, "Let's go.", "Irate")
+    alice:halt(false)
+   end)
+end
+
+return Staircase4
+

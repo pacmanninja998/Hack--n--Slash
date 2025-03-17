@@ -1,0 +1,68 @@
+-- Decompiled using luadec 2.0.2 by sztupy (http://winmo.sztupy.hu)
+-- Command line was: C:\Users\pacmanninja998\Downloads\luadec51_2.0.2_win32\decode\Content\Game\DourTower\Rooms\Staircase2.lua 
+
+local Class = require("Class")
+local Room = require("Room")
+local Staircase2 = Room.classFromLayout("Content/Game/DourTower/Layouts/Staircase", "Staircase2", "Content/Game/DourTower/Rooms/Staircase")
+local Entity = require("Entity")
+local Math = require("DFCommon.Math")
+local Music = require("Music")
+local Shader = require("Shader")
+local SceneComponent = require("Components.SceneComponent")
+local SoundComponent = require("Components.SoundComponent")
+Staircase2.onInit = function(l_1_0)
+  Class.super(Staircase2).onInit(l_1_0)
+  l_1_0:defineCollisionExit("Exit_Lft", "Content/Game/DourTower/Rooms/TowerLevel2", "Staircase2 exit")
+  l_1_0:defineCollisionExit("Exit_Rt", "Content/Game/DourTower/Rooms/TowerLevel3", "Staircase2 exit")
+end
+
+Staircase2.onEntranceTrigger = function(l_2_0)
+  if l_2_0:getState().sawMonologue then
+    return 
+  end
+  l_2_0:getState().sawMonologue = true
+  local alice = l_2_0:getAlice()
+  local bob = l_2_0:getBob()
+  alice:get(SceneComponent):play(function(l_1_0)
+    local alicePortrait = l_1_0:addAlicePortrait()
+    local bobPortrait = l_1_0:addCharacter("Portraits/Bob/Bob")
+    local head = Entity.create("Content/Game/DourTower/Entities/WizardHead", self:getLayerByOrder(0), alice:getPosition())
+    head.prop:setScl(1.5)
+    head:trackEntity(alice)
+    head:appear()
+    local cameraShake = Shader.load("Content/Game/Global/Shaders/CameraShake")
+    cameraShake:setFragmentUniformFloat("shaderDuration", 0.6)
+    self:insertPostEffect(cameraShake)
+    l_1_0:animate(0.4, function(l_1_0)
+      cameraShake:setFragmentUniformFloat("shaderDuration", Math.lerp(0.6, 0, l_1_0))
+      end)
+    self:removePostEffect()
+    Music:playMusic("Music/Music/WizardTower_Level5_Layer2")
+    head:setFace("Skeptical")
+    l_1_0:sleep(0.1)
+    l_1_0:floatText(head, "Oh come on!", nil, {floatAbove = false})
+    l_1_0:sleep(0.5)
+    head:setFace()
+    l_1_0:floatText(head, "How could you possibly have known to turn off the death clock?!", nil, {floatAbove = false})
+    l_1_0:sleep(0.25)
+    l_1_0:floatText(alice, "Your traps just aren't that good.", nil, {floatAbove = false})
+    head:setFace("Angry")
+    self:insertPostEffect(cameraShake)
+    local cue = alice:get(SoundComponent):playCue("SFX/Cutscenes/WizardTower_Earthquake")
+    l_1_0:animate(0.05, function(l_2_0)
+      head.prop:setScl(Math.lerp(1.5, 1.75, l_2_0))
+      cameraShake:setFragmentUniformFloat("shaderDuration", Math.lerp(0, 0.4, l_2_0))
+      end)
+    l_1_0:floatText(head, "You're cheating!  I'll stop you!", nil, {floatAbove = false})
+    alice:get(SoundComponent):stopCue(cue)
+    l_1_0:animate(0.2, function(l_3_0)
+      cameraShake:setFragmentUniformFloat("shaderDuration", Math.lerp(0.4, 0, l_3_0))
+      end)
+    self:removePostEffect()
+    head:disappear()
+    l_1_0:sleep(1)
+   end)
+end
+
+return Staircase2
+
